@@ -1,0 +1,9 @@
+---
+# tasks file for ec2-instance
+- name: installing boto library on local system
+  pip:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ python_lib }}"
+
+
