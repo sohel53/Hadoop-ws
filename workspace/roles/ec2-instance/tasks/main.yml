@@ -5,5 +5,20 @@
     name: "{{ item }}"
     state: present
   loop: "{{ python_lib }}"
+- name: creating security group in aws for hadoop 
+  ec2_group:
+    name: "{{ sg_name }}"
+    description: Security group for allowing all ports
+    region: "{{ region_name }}"
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+    rules:
+    - proto: all
+      cidr-ip: 0.0.0.0/0
+    rules_egress:
+    - proto: all
+      cidr_ip: 0.0.0.0/0
+      
+      
 
 
