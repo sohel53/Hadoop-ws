@@ -5,6 +5,7 @@
     name: "{{ item }}"
     state: present
   loop: "{{ python_lib }}"
+
 - name: creating security group in aws for hadoop 
   ec2_group:
     name: "{{ sg_name }}"
@@ -18,7 +19,54 @@
     rules_egress:
     - proto: all
       cidr_ip: 0.0.0.0/0
-      
-      
 
+- name: Launching 5 aws instance using security group
+  ec2:
+    key_name: "{{ key }}"
+    instance_type: "{{ instance_type }}"\
+    image: "{{ ami_id }}"
+    wait: true
+    group: "{{ sg_name }}"
+    count: 1
+    vpc_subnet_id: "{{ subnet }}"
+    assign_public_ip: yes
+    region: "{{ region }}"
+    state: present
+    aws_access_key: "{{ access_key }}"
+    aws_secret_key: "{{ secret_key }}"
+    instance_tags:
+      name: "{{ item }}"
+  register: ec2
+  loop: "{{ instance_tags }}"
+
+- name: Add 1 instance to host group namenode
+  add_host:
+    hostname: "{{ ec2.results[0].instances[0].public_ip }}"
+    groupname: namenode
+      
+- name: Add 2 instance to host group datanode
+  add_host:
+    hostname: "{{ ec2.results[1].instances[0].public_ip }}"
+    groupname: datanode
+          
+- name: Add 3 instance to host group jobtracker
+  add_host:
+    hostname: "{{ ec2.results[2].instances[0].public_ip }}"
+    groupname: jobtracker
+        
+- name: Add 4 instance to host group tasktracker
+  add_host:
+    hostname: "{{ ec2.results[3].instances[0].public_ip }}"
+    groupname: tasktracker
+               
+- name: Add 5 instance to host group clientnode
+  add_host:
+    hostname: "{{ ec2.results[4].instances[0].public_ip }}"
+    groupname: clientnode
+           
+- name: wait for ssh connection
+  wait_for:
+    host: "{{ ec2.results[0].instances[0].public_dns_name }}"
+    port: 22
+    state: started
 
